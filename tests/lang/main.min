@@ -1,0 +1,18 @@
+pkg main
+
+ex def main():void -> {
+ if
+}
+
+def sieveOfEratosthenes(n:u32): void -> {
+  primes := [0..n]u32
+
+  mut a, x, y : u32, u32, u32 = _
+
+  x = 2
+
+  loop (x * x) <= a {
+    if primes[x] != 0
+  }
+
+}

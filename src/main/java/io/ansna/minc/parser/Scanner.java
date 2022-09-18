@@ -1,4 +1,4 @@
-package io.ansna.minc.lexer;
+package io.ansna.minc.parser;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

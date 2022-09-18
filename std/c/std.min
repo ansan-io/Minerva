@@ -1,0 +1,10 @@
+pkg c
+
+ex alias char = u8
+ex alias schar = i8
+ex alias short = i16
+ex alias int  = i32
+ex alias char = u8
+ex alias char = u8
+ex alias char = u8
+ex alias char = u8

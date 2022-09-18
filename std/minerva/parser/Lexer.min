@@ -1,0 +1,30 @@
+pkg parser
+
+use std.minerva.ast
+use std.minerva.parser._
+
+ex struct FileNode {
+  path:string
+  name:string
+  src:[]char
+  tokens:Vec<Tokens>
+  
+}
+
+class Lexer(file:^FileNode) {
+
+  //eat tokens
+  mut idx : size = 0
+
+  def token():Token -> {
+
+  }
+
+  for i <- src {
+    switch i {
+      case '0'...'9':
+    }
+  }
+  def check(c:char, n:u8) -> return src[idx + n]
+  def check(char c):char -> src[idx]
+}

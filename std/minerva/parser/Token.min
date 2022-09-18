@@ -1,0 +1,15 @@
+pkg parser
+
+ex struct Postition {
+  line:size,
+  column:size,
+  offset_start,
+  offset_end,
+}
+
+ex class Token(lexme:string, kind:Kind, pos:Postition) {
+  ex lexme  := lexme
+  ex kind   := kind
+  ex pos    := pos;
+  ex len    := pos.offset_end - pos.offset_start
+}
