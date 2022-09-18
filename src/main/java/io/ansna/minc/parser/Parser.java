@@ -4,11 +4,7 @@ import io.ansna.minc.Compiler;
 import io.ansna.minc.ast.FileNode;
 import io.ansna.minc.ast.INode;
 import io.ansna.minc.ast.INode.IStmtNode;
-import io.ansna.minc.ast.decl.UseNode;
-import io.ansna.minc.ast.decl.PkgNode;
-import io.ansna.minc.ast.decl.StructNode;
-import io.ansna.minc.ast.decl.EnumNode;
-import io.ansna.minc.ast.decl.DefNode;
+import io.ansna.minc.ast.decl.*;
 import io.ansna.minc.ast.decl.DefNode.Parameter;
 import io.ansna.minc.ast.decl.DefNode.FunctionDefinition;
 import io.ansna.minc.ast.decl.EnumNode.EnumMember;
@@ -34,19 +30,19 @@ public final class Parser {
     this.idx      = 0;
   }
 
-  //TODO(anthony): implement
+  //TODO(anita): implement
   private IStmtNode parse_stmt() {
     return null;
   }
   private PkgNode pkg_parse() {
     var ident = consume(PKG);
-    var name = consume(IDENT);
+    var name  = consume(IDENT);
     return new PkgNode(ident, name);
   }
 
   private UseNode use_parse() {
-    var ident = consume(USE);
-    var path = new StringBuilder();
+    var ident       = consume(USE);
+    var path        = new StringBuilder();
     var tokenstream = new ArrayList<Token>();
     for (;;) {
       path.append(consume(IDENT).lexme());
@@ -62,19 +58,19 @@ public final class Parser {
   }
 
   private StructNode struct_parse(boolean is_public) {
-    Token ex = null;
+    Token ex          = null;
     if (is_public) ex = consume(EXPORT);
-    var ident = consume(STRUCT);
-    var name = consume(IDENT);
-    Token parent = null;
+    var ident         = consume(STRUCT);
+    var name          = consume(IDENT);
+    Token parent      = null;
 
     if (match(COLON)) {
       consume(COLON);
       parent = consume(IDENT);
     }
 
-    var start = consume(OPEN_BRACE);
-    var fields = new ArrayList<StructFieldNode>();
+    var start   = consume(OPEN_BRACE);
+    var fields  = new ArrayList<StructFieldNode>();
 
     for(;;) {
       fields.add(struct_field_node());
@@ -101,9 +97,9 @@ public final class Parser {
     Token ex = null;
     if (is_public) ex = consume(EXPORT);
 
-    var ident = consume(ENUM);
-    var name = consume(IDENT);
-    var members = new ArrayList<EnumNode.EnumMember>();
+    var ident         = consume(ENUM);
+    var name          = consume(IDENT);
+    var members       = new ArrayList<EnumNode.EnumMember>();
 
     consume(OPEN_BRACE);
 
@@ -121,7 +117,6 @@ public final class Parser {
     if (match(OPEN_PARAN)) {
       consume(OPEN_PARAN);
       for (;;) {
-        var token = peek();
         var type = consume_type();
         types.add(type);
         if (match(COMMA)) {
@@ -138,16 +133,15 @@ public final class Parser {
     } else {
       log_error("How did we get here? Illegal token " + peek().toString() + " in enum member");
       System.exit(-1);
-
     }
     return new EnumMember(ident, types);
   }
 
   private DefNode def_parse(boolean is_public) {
-   Token ex = null;
-   if (match(EXPORT)) ex = consume(EXPORT);
-   var func_def = def_definition();
-   var block = block_parse();
+   Token ex               = null;
+   if (match(EXPORT)) ex  = consume(EXPORT);
+   var func_def           = def_definition();
+   var block              = block_parse();
    return new DefNode(ex, func_def, block);
   }
 
@@ -184,8 +178,44 @@ public final class Parser {
     return new Parameter(ident, type);
   }
 
+  private InterfaceNode interface_parse(boolean is_public) {
+    Token ex = null;
+    if (is_public) ex = consume(EXPORT);
+    var ident         = consume(INTERFACE);
+    var name          = consume(IDENT);
+    var parents       = new ArrayList<Token>();
+    var definitions   = new ArrayList<FunctionDefinition>();
+
+    if (match(COLON)) {
+      consume(COLON);
+      for (;;) {
+        var parent = consume(IDENT);
+        parents.add(parent);
+        if (match(COMMA)) {
+          consume(COMMA);
+        } else if (match(EOL)) {
+         break;
+        } else {
+          log_error("Issue reading parent token " + peek().toString());
+        }
+      }
+    } else if (match(OPEN_BRACE)) {
+      consume(OPEN_BRACE);
+      consume(EOL);
+
+      while (!match(CLOSE_PARAN)) {
+        var defin = def_definition();
+        definitions.add(defin);
+        consume(EOL);
+      }
+      consume(CLOSE_BRACE);
+    }
+
+    return new InterfaceNode(ex, ident, name, parents, definitions);
+  }
+
   private BlockNode block_parse() {
-    var start = consume(OPEN_BRACE);
+    var start     = consume(OPEN_BRACE);
     var stmt_list = new ArrayList<IStmtNode>();
     while (match(CLOSE_BRACE)) {
      stmt_list.add(parse_stmt());
