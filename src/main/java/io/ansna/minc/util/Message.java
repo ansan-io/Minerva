@@ -15,6 +15,8 @@ public final class Message {
       return this;
     }
 
+
+
     public MessageBuilder color_foreground(Color color) {
       this.color = color;
       return this;
