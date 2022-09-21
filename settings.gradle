@@ -1,2 +1,3 @@
-rootProject.name = 'Min'
+rootProject.name = 'Minerva'
+include ':minc'
 

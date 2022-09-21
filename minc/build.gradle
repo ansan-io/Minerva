@@ -1,0 +1,6 @@
+plugins {
+  id 'java'
+}
+
+group = 'io.ansan.minc'
+version = '0.1'
