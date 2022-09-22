@@ -3,7 +3,7 @@ package io.ansan.nas.aarch64.op;
 import io.ansan.nas.asm.OpCode;
 
 public enum AArch64Op {
-    NOP("NOP",0b0101, "No Operation"),
+    NOP("NOP", 0b0101, "No Operation"),
     ;
 
     public final int    op;
@@ -16,7 +16,7 @@ public enum AArch64Op {
         this.description = description;
     }
 
-    public OpCode<AArch64Op> toInstruction() {
+    public OpCode<AArch64Op> to_instruction() {
         return new OpCode<>(name, op, description, this);
     }
 }
