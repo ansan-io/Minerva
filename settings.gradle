@@ -1,2 +1,3 @@
-rootProject.name = 'Min'
-include ':nas'
+rootProject.name = 'Minerva'
+include ':minc'
+
