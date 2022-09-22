@@ -1,3 +1,4 @@
 rootProject.name = 'Minerva'
 include ':minc'
+include ':nas'
 
