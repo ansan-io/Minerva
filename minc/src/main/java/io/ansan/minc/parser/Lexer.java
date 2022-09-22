@@ -4,63 +4,61 @@ import io.ansan.minc.Compiler;
 import io.ansan.minc.ast.FileNode;
 import io.ansan.minc.token.Position;
 import io.ansan.minc.token.Token;
+import io.ansan.minc.token.Token.Kind;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Lexer {
+
   private final Compiler compiler;
   private final FileNode node;
   int idx     = 0;
   int line    = 1;
   int column  = 1;
 
-  public List<Token> tokenList;
-
   public Lexer(Compiler compiler, FileNode node) {
     this.compiler = compiler;
     this.node     = node;
-    tokenList     = new ArrayList<>();
+    node.tokens = new ArrayList<>();
 
     while (lexToken().kind() != Token.Kind.EOL){
-        this.advance();
+      node.tokens.add(lexToken());
+      this.advance();
     }
   }
 
   private Token lexToken() {
       var start = idx;
       return switch (peek()) {
-        case '\0' -> addToken(Token.Kind.EOF, start, idx);
-        case '\n', '\r' -> addToken(Token.Kind.EOL, start, idx);
+        case '\0' -> addToken(Kind.EOF, start, idx);
+        case '\n', '\r' -> addToken(Kind.EOL, start, idx);
         case ' ', '\t'  -> null;
-        case '(' -> addToken(Token.Kind.OPEN_PARAN,    start, idx);
-        case ')' -> addToken(Token.Kind.CLOSE_PARAN,   start, idx);
-        case '[' -> addToken(Token.Kind.OPEN_BRACKET,  start, idx);
-        case ']' -> addToken(Token.Kind.CLOSE_BRACKET, start, idx);
-        case '}' -> addToken(Token.Kind.OPEN_BRACE,    start, idx);
-        case '{' -> addToken(Token.Kind.CLOSE_BRACE,   start, idx);
+        case '(' -> addToken(Kind.OPEN_PARAN,    start, idx);
+        case ')' -> addToken(Kind.CLOSE_PARAN,   start, idx);
+        case '[' -> addToken(Kind.OPEN_BRACKET,  start, idx);
+        case ']' -> addToken(Kind.CLOSE_BRACKET, start, idx);
+        case '}' -> addToken(Kind.OPEN_BRACE,    start, idx);
+        case '{' -> addToken(Kind.CLOSE_BRACE,   start, idx);
         case '+' -> lexPlus(start);
         case '-' -> lexMinus(start);
         case '/' -> lexDiv(start);
-        case '%' -> addToken(Token.Kind.MODULO,    start, idx);
-        case '*' -> addToken(Token.Kind.MULTIPLY,  start, idx);
+        case '%' -> addToken(Kind.MODULO,    start, idx);
+        case '*' -> addToken(Kind.MULTIPLY,  start, idx);
         case '<' -> lexLess(start);
         case '>' -> lexGreat(start);
         case '!' -> lexBang(start);
         case '=' -> lexEq(start);
         case '|' -> lexPipe(start);
-        case '~' -> addToken(Token.Kind.BIT_NOT, start, idx);
+        case '~' -> addToken(Kind.BIT_NOT, start, idx);
         case '&' -> lexAnd(start);
-        case '^' -> addToken(Token.Kind.CARROT, start, idx);
-        case ':' -> addToken(Token.Kind.COLON, start, idx);
-        //TODO(anthony): :=
-        case '@' -> addToken(Token.Kind.MACRO, start, idx);
-        case '#' -> addToken(Token.Kind.POUND, start, idx);
-        case '.' -> addToken(Token.Kind.PERIOD, start, idx);
-        //TODO(anthony): ..
-        case ',' -> addToken(Token.Kind.COMMA, start, idx);
-        case '\'' -> addToken(Token.Kind.SINGLE_QUOTE, start, idx);
-        case '"' -> addToken(Token.Kind.DOUBLE_QUOTE, start, idx);
+        case '^' -> addToken(Kind.CARROT, start, idx);
+        case ':' -> lexColon(start);
+        case '@' -> addToken(Kind.MACRO, start, idx);
+        case '#' -> addToken(Kind.POUND, start, idx);
+        case '.' -> lexDot(start);
+        case ',' -> addToken(Kind.COMMA, start, idx);
+        case '\'' -> addToken(Kind.SINGLE_QUOTE, start, idx);
+        case '"' -> addToken(Kind.DOUBLE_QUOTE, start, idx);
         default -> numbersAndIdents(start);
       };
   }
@@ -68,75 +66,75 @@ public class Lexer {
   private Token lexPlus(int start) {
     if (match('+')) {
       advance();
-      return addToken(Token.Kind.INCREMENT, start, idx);
+      return addToken(Kind.INCREMENT, start, idx);
     } else {
-      return addToken(Token.Kind.ADD, start, idx);
+      return addToken(Kind.ADD, start, idx);
     }
   }
 
   private Token lexMinus(int start) {
     if (match('-')) {
       advance();
-      return addToken(Token.Kind.DECREMENT, start, idx);
+      return addToken(Kind.DECREMENT, start, idx);
     } else if (match('>')) {
       advance();
-      return addToken(Token.Kind.RIGHT_ARROW, start, idx);
+      return addToken(Kind.RIGHT_ARROW, start, idx);
     } else {
-      return addToken(Token.Kind.SUBTRACT, start, idx);
+      return addToken(Kind.SUBTRACT, start, idx);
     }
   }
 
   private Token lexLess(int start) {
     if (match('=')) {
       advance();
-      return addToken(Token.Kind.LESS_THAN_EQ, start, idx);
+      return addToken(Kind.LESS_THAN_EQ, start, idx);
     } else if (match('<')) {
       advance();
-      return addToken(Token.Kind.SHIFT_LEFT, start, idx);
+      return addToken(Kind.SHIFT_LEFT, start, idx);
     } else if (match('-')) {
       advance();
-      return addToken(Token.Kind.LEFT_ARROW, start, idx);
+      return addToken(Kind.LEFT_ARROW, start, idx);
     } else {
-      return addToken(Token.Kind.LESS_THAN, start, idx);
+      return addToken(Kind.LESS_THAN, start, idx);
     }
   }
 
   private Token lexGreat(int start) {
     if (match('=')) {
       advance();
-      return addToken(Token.Kind.GREATER_THAN_EQ, start, idx);
+      return addToken(Kind.GREATER_THAN_EQ, start, idx);
     } else if (match('>')) {
       advance();
-      return addToken(Token.Kind.SHIFT_LEFT, start, idx);
+      return addToken(Kind.SHIFT_LEFT, start, idx);
     } else {
-      return addToken(Token.Kind.LESS_THAN, start, idx);
+      return addToken(Kind.LESS_THAN, start, idx);
     }
   }
 
   private Token lexPipe(int start) {
     if (match('|')) {
       advance();
-      return addToken(Token.Kind.OR, start, idx);
+      return addToken(Kind.OR, start, idx);
     } else {
-      return addToken(Token.Kind.BIT_OR, start, idx);
+      return addToken(Kind.BIT_OR, start, idx);
     }
   }
 
   private Token lexBang(int start) {
     if (match('=')) {
       advance();
-      return addToken(Token.Kind.NOT_EQ, start, idx);
+      return addToken(Kind.NOT_EQ, start, idx);
     } else {
-      return addToken(Token.Kind.NOT, start, idx);
+      return addToken(Kind.NOT, start, idx);
     }
   }
 
   private Token lexEq(int start) {
     if (match('=')) {
       advance();
-      return addToken(Token.Kind.EQUAL, start, idx);
+      return addToken(Kind.EQUAL, start, idx);
     } else {
-      return addToken(Token.Kind.ASSIGN, start, idx);
+      return addToken(Kind.ASSIGN, start, idx);
     }
   }
 
@@ -145,6 +143,7 @@ public class Lexer {
    if (Character.isAlphabetic(peek())) return  lexIdent(start);
    return null;
   }
+
   private Token lexIdent(int start) {
     var sb = new StringBuilder();
     if (Character.isAlphabetic(peek())) {
@@ -168,17 +167,17 @@ public class Lexer {
         sb.append(peek());
         advance();
       }
-      return addToken(sb.toString(), Token.Kind.NUMBER, start, idx);
+      return addToken(sb.toString(), Kind.NUMBER, start, idx);
     }
 
     while (Character.isDigit(peek())) {
       sb.append(peek());
       advance();
     }
-    return addToken(sb.toString(), Token.Kind.NUMBER, start, idx);
+    return addToken(sb.toString(), Kind.NUMBER, start, idx);
   }
 
-  //TODO(anthony): Fix to use match instead of this peek bullshit
+  //TODO(anita): Fix to use match instead of this peek bullshit
   private Token lexNumber() {
     var sb = new StringBuilder();
     var start = idx;
@@ -191,14 +190,14 @@ public class Lexer {
         sb.append(peek());
         advance();
        }
-       return addToken(sb.toString(), Token.Kind.NUMBER, start, idx);
+       return addToken(sb.toString(), Kind.NUMBER, start, idx);
       }
     }
     while (Character.isDigit(peek())) {
       sb.append(peek());
       advance();
     }
-    return addToken(sb.toString(), Token.Kind.NUMBER, start, idx);
+    return addToken(sb.toString(), Kind.NUMBER, start, idx);
   }
 
   public Token lexDiv(int start) {
@@ -210,9 +209,9 @@ public class Lexer {
         sb.append(peek());
         advance();
       }
-      return addToken(sb.toString(), Token.Kind.COMMENT, start, idx);
+      return addToken(sb.toString(), Kind.COMMENT, start, idx);
     } else {
-      return addToken(Token.Kind.DIVIDE, start, idx);
+      return addToken(Kind.DIVIDE, start, idx);
     }
   }
 
@@ -228,29 +227,37 @@ public class Lexer {
   public Token lexColon(int start) {
     if (match(':') && match(1,'=')) {
       advance(2);
-      return addToken(Token.Kind.ASSIGN_INFER, start, idx);
+      return addToken(Kind.ASSIGN_INFER, start, idx);
     } else {
-      return addToken(Token.Kind.COLON, start, idx);
+      return addToken(Kind.COLON, start, idx);
     }
   }
 
+  private Token lexDot(int start) {
+    if (match('.') && match(1, '.')) {
+      advance(2);
+      return addToken(Kind.RANGE, start, idx);
+    } else {
+      return addToken(Kind.PERIOD, start, idx);
+    }
+  }
   public Token.Kind fromString(String string) {
-    for (var kind : Token.Kind.values()) {
+    for (var kind : Kind.values()) {
       if (kind.lexme.equals(string)) {
         return kind;
       }
     }
-    return Token.Kind.IDENT;
+    return Kind.IDENT;
   }
 
   private void advance(int n) {
     this.idx = this.idx + n;
   }
 
-  private Token addToken(String lexme, Token.Kind kind, int start, int end) {
+  private Token addToken(String lexme, Kind kind, int start, int end) {
     return new Token(lexme, kind, new Position(start, end, this.line, this.column));
   }
-  private Token addToken(Token.Kind kind, int start, int end) {
+  private Token addToken(Kind kind, int start, int end) {
     return new Token(kind, new Position(start, end, this.line, this.column));
   }
 

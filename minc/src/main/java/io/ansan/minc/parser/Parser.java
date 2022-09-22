@@ -1,28 +1,40 @@
 package io.ansan.minc.parser;
 
+import static io.ansan.minc.token.Token.Kind.*;
+
 import io.ansan.minc.Compiler;
-import io.ansan.minc.ast.*;
-import io.ansan.minc.ast.decl.*;
-import io.ansan.minc.ast.stmt.WithNode;
-import io.ansan.minc.util.Message;
+import io.ansan.minc.ast.BuiltinType;
+import io.ansan.minc.ast.FileNode;
+import io.ansan.minc.ast.INode.IDeclNode;
 import io.ansan.minc.ast.INode.IStmtNode;
-import io.ansan.minc.ast.decl.DefNode.Parameter;
+import io.ansan.minc.ast.INode.IExprNode;
+import io.ansan.minc.ast.IType;
+import io.ansan.minc.ast.PointerType;
+import io.ansan.minc.ast.UserType;
+import io.ansan.minc.ast.decl.DefNode;
 import io.ansan.minc.ast.decl.DefNode.FunctionDefinition;
+import io.ansan.minc.ast.decl.DefNode.Parameter;
+import io.ansan.minc.ast.decl.EnumNode;
 import io.ansan.minc.ast.decl.EnumNode.EnumMember;
+import io.ansan.minc.ast.decl.InterfaceNode;
+import io.ansan.minc.ast.decl.PkgNode;
+import io.ansan.minc.ast.decl.StructNode;
 import io.ansan.minc.ast.decl.StructNode.StructFieldNode;
+import io.ansan.minc.ast.decl.UseNode;
 import io.ansan.minc.ast.stmt.BlockNode;
 import io.ansan.minc.ast.stmt.DeferNode;
+import io.ansan.minc.ast.stmt.WithNode;
 import io.ansan.minc.token.Token;
 import io.ansan.minc.token.Token.Kind;
+import io.ansan.minc.util.Message;
 
 import java.util.ArrayList;
 
-import static io.ansan.minc.token.Token.Kind.*;
-
 public final class Parser {
-  public final FileNode node;
+
+  public  final FileNode node;
   private final Compiler compiler;
-  private int idx;
+  private int   idx;
 
   public Parser(Compiler compiler, FileNode node) {
     this.compiler = compiler;
@@ -30,10 +42,48 @@ public final class Parser {
     this.idx      = 0;
   }
 
-  //TODO(anita): implement
+  // TODO(anita): implement
   private IStmtNode parse_stmt() {
     return null;
   }
+
+  private IExprNode parse_expr() {
+    return null;
+  }
+
+  // TODO(anita): add classes to the parser
+  private IDeclNode parse_decl() {
+    switch (peek().kind()) {
+    case PKG:
+      return pkg_parse();
+    case USE:
+      return use_parse();
+    case DEF:
+      return def_parse(false);
+    case STRUCT:
+      return struct_parse(false);
+    case INTERFACE:
+      return interface_parse(false);
+    case EXPORT: {
+      switch (peek(1).kind()) {
+      case DEF:
+        return def_parse(true);
+      case STRUCT:
+        return struct_parse(true);
+      case INTERFACE:
+        return interface_parse(true);
+      default:
+        log_error("Illegal token after export " + peek());
+        return null;
+
+      }
+    }
+    default:
+      log_error("Illegal token found in declarion postion" + peek());
+      return null;
+    }
+  }
+
   private PkgNode pkg_parse() {
     var ident = consume(PKG);
     var name  = consume(IDENT);
@@ -54,15 +104,17 @@ public final class Parser {
         log_error("Illegal token found in use expected a period or an EOL of a {" + peek().toString() + "} instead!");
       }
     }
-    return  new UseNode(ident, path.toString(), tokenstream);
+    return new UseNode(ident, path.toString(), tokenstream);
   }
 
   private StructNode struct_parse(boolean is_public) {
-    Token ex          = null;
-    if (is_public) ex = consume(EXPORT);
-    var ident         = consume(STRUCT);
-    var name          = consume(IDENT);
-    Token parent      = null;
+    Token ex = null;
+    if (is_public) {
+      ex = consume(EXPORT);
+    }
+    var ident     = consume(STRUCT);
+    var name      = consume(IDENT);
+    Token parent  = null;
 
     if (match(COLON)) {
       consume(COLON);
@@ -72,7 +124,7 @@ public final class Parser {
     var start   = consume(OPEN_BRACE);
     var fields  = new ArrayList<StructFieldNode>();
 
-    for(;;) {
+    for (;;) {
       fields.add(struct_field_node());
       if (match(CLOSE_BRACE)) {
         break;
@@ -88,18 +140,18 @@ public final class Parser {
 
   private StructFieldNode struct_field_node() {
     var ident = consume(IDENT);
-    var type = consume_type();
-
+    var type  = consume_type();
     return new StructFieldNode(ident, type);
   }
 
   private EnumNode enum_parse(boolean is_public) {
     Token ex = null;
-    if (is_public) ex = consume(EXPORT);
-
-    var ident         = consume(ENUM);
-    var name          = consume(IDENT);
-    var members       = new ArrayList<EnumNode.EnumMember>();
+    if (is_public) {
+      ex = consume(EXPORT);
+    }
+    var ident   = consume(ENUM);
+    var name    = consume(IDENT);
+    var members = new ArrayList<EnumNode.EnumMember>();
 
     consume(OPEN_BRACE);
 
@@ -138,16 +190,18 @@ public final class Parser {
   }
 
   private DefNode def_parse(boolean is_public) {
-   Token ex               = null;
-   if (match(EXPORT)) ex  = consume(EXPORT);
-   var func_def           = def_definition();
-   var block              = block_parse();
-   return new DefNode(ex, func_def, block);
+    Token ex = null;
+    if (match(EXPORT)) {
+      ex = consume(EXPORT);
+    }
+    var func_def  = def_definition();
+    var block     = block_parse();
+    return new DefNode(ex, func_def, block);
   }
 
   private FunctionDefinition def_definition() {
     var ident = consume(DEF);
-    var name = consume(IDENT);
+    var name  = consume(IDENT);
     var parameters = new ArrayList<Parameter>();
 
     if (match(OPEN_PARAN)) {
@@ -180,11 +234,13 @@ public final class Parser {
 
   private InterfaceNode interface_parse(boolean is_public) {
     Token ex = null;
-    if (is_public) ex = consume(EXPORT);
-    var ident         = consume(INTERFACE);
-    var name          = consume(IDENT);
-    var parents       = new ArrayList<Token>();
-    var definitions   = new ArrayList<FunctionDefinition>();
+    if (is_public) {
+      ex = consume(EXPORT);
+    }
+    var ident       = consume(INTERFACE);
+    var name        = consume(IDENT);
+    var parents     = new ArrayList<Token>();
+    var definitions = new ArrayList<FunctionDefinition>();
 
     if (match(COLON)) {
       consume(COLON);
@@ -194,7 +250,7 @@ public final class Parser {
         if (match(COMMA)) {
           consume(COMMA);
         } else if (match(EOL)) {
-         break;
+          break;
         } else {
           log_error("Issue reading parent token " + peek().toString());
         }
@@ -220,7 +276,7 @@ public final class Parser {
     var ident = consume(WITH);
     var name  = consume(IDENT);
     consume(COLON);
-    var ptr   = consume_type();
+    var ptr = consume_type();
     assert ptr != null;
     if (ptr.getTypeKind() != IType.TypeKind.POINTER) {
       log_error("With must return with a pointer type " + peek(-1).toString());
@@ -232,7 +288,7 @@ public final class Parser {
     var ident = consume(DEFER);
     BlockNode blk_node = null;
     if (!match(OPEN_BRACE)) {
-      //call node
+      //TODO(anita): do a match for a call node
     } else if (match(OPEN_BRACE)) {
       blk_node = block_parse();
     } else {
@@ -241,9 +297,8 @@ public final class Parser {
     return new DeferNode(ident, blk_node);
   }
 
-
   private BlockNode block_parse() {
-    var start     = consume(OPEN_BRACE);
+    var start = consume(OPEN_BRACE);
     var stmt_list = new ArrayList<IStmtNode>();
     while (match(CLOSE_BRACE)) {
       stmt_list.add(parse_stmt());
@@ -260,11 +315,11 @@ public final class Parser {
     } else if (match(IDENT)) {
       return new UserType(consume(IDENT));
     } else if (match(CARROT)) {
-      var marker  = consume(CARROT);
-      var ident   = consume(IDENT);
-      //Check to see if the pointer semantics are correct
+      var marker = consume(CARROT);
+      var ident = consume(IDENT);
+      // Check to see if the pointer semantics are correct
       assert marker != null : "How did this becomes null?";
-      var mark_pos  = marker.pos();
+      var mark_pos = marker.pos();
 
       assert ident != null : "How did this become null";
       var ident_pos = ident.pos();
@@ -279,20 +334,34 @@ public final class Parser {
     return null;
   }
 
-  private void advance() { advance(0); }
+  private void advance() {
+    advance(0);
+  }
 
-  private void advance(int n) { this.idx = this.idx + n; }
+  private void advance(int n) {
+    this.idx = this.idx + n;
+  }
 
-  private Token peek(int n) { return node.tokens.get(idx + n); }
+  private Token peek(int n) {
+    return node.tokens.get(idx + n);
+  }
 
-  private Token peek() { return peek(0); }
-  
-  private boolean match(int n, Kind kind) { return peek(n).kind() == kind; }
+  private Token peek() {
+    return peek(0);
+  }
 
-  private boolean match(Kind kind) { return match(0, kind); }
+  private boolean match(int n, Kind kind) {
+    return peek(n).kind() == kind;
+  }
+
+  private boolean match(Kind kind) {
+    return match(0, kind);
+  }
 
   private Token consume(Kind kind) {
-    if (match(kind)) return peek();
+    if (match(kind)) {
+      return peek();
+    }
     log_error("Type mismatch on token " + peek().lexme() + " expected kind " + kind.lexme);
     return null;
   }

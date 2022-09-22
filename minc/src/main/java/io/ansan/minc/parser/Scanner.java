@@ -11,9 +11,9 @@ public class Scanner {
   CharBuffer charBuffer;
   public Scanner(Path path) {
     try {
-      var buf = Files.readAllBytes(path);
-      ByteBuffer buffer = ByteBuffer.wrap(buf);
-      charBuffer = StandardCharsets.UTF_8.decode(buffer);
+      var buf     = Files.readAllBytes(path);
+      var buffer  = ByteBuffer.wrap(buf);
+      charBuffer  = StandardCharsets.UTF_8.decode(buffer);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

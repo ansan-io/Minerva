@@ -13,4 +13,10 @@ public final class FileNode implements INode {
     public CharBuffer source;
     public List<Token> tokens;
     public INode ast;
+
+
+  @Override
+  public AstNode get_node_type() {
+    return null;
+  }
 }
