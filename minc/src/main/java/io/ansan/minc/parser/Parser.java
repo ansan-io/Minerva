@@ -5,10 +5,14 @@ import static io.ansan.minc.token.Token.Kind.*;
 import io.ansan.minc.Compiler;
 import io.ansan.minc.ast.BuiltinType;
 import io.ansan.minc.ast.FileNode;
+import io.ansan.minc.ast.INode;
 import io.ansan.minc.ast.INode.IDeclNode;
 import io.ansan.minc.ast.INode.IStmtNode;
 import io.ansan.minc.ast.INode.IExprNode;
 import io.ansan.minc.ast.IType;
+import io.ansan.minc.ast.basic.IdentNode;
+import io.ansan.minc.ast.basic.NumberNode;
+import io.ansan.minc.ast.basic.StringNode;
 import io.ansan.minc.ast.PointerType;
 import io.ansan.minc.ast.UserType;
 import io.ansan.minc.ast.decl.DefNode;
@@ -20,6 +24,8 @@ import io.ansan.minc.ast.decl.InterfaceNode;
 import io.ansan.minc.ast.decl.PkgNode;
 import io.ansan.minc.ast.decl.StructNode;
 import io.ansan.minc.ast.decl.StructNode.StructFieldNode;
+import io.ansan.minc.ast.expr.ArithmeticNode;
+import io.ansan.minc.ast.expr.AssignNode;
 import io.ansan.minc.ast.decl.UseNode;
 import io.ansan.minc.ast.stmt.BlockNode;
 import io.ansan.minc.ast.stmt.DeferNode;
@@ -131,7 +137,7 @@ public final class Parser {
       } else if (match(EOL)) {
         consume(EOL);
       } else {
-        log_error("illegal token at " + peek().toString());
+        log_error("Illegal token at " + peek().toString());
       }
     }
     var end = consume(CLOSE_BRACE);
@@ -307,6 +313,47 @@ public final class Parser {
     return new BlockNode(start, stmt_list, end);
   }
 
+
+  /* Expressions */
+
+  private AssignNode assign_parse() {
+    Token mut     = null;
+    var type_list = new ArrayList<IType>();
+    if (match(MUT)) {
+      mut = consume(MUT);
+    }
+
+    while (!match(ASSIGN)) {
+      type_list.add(consume_type());
+    }
+
+    var assign      = consume(ASSIGN);
+    var assign_list = new ArrayList<INode>();
+
+    return new AssignNode(mut, type_list, assign, assign_list);
+  }
+
+  /** Arithmetic parser **/
+
+  private ArithmeticNode arithmetic_node_parse() {
+
+    return null;
+  }
+
+  /* Other Parser */
+
+  private NumberNode number_node_parse() {
+    return new NumberNode(consume(NUMBER));
+  }
+
+  private StringNode string_node_parse() {
+    return new StringNode(consume(STRING));
+  }
+
+  private IdentNode ident_node_parse() {
+    return new IdentNode(consume(IDENT));
+  }
+
   private IType consume_type() {
     if (is_primitive()) {
       var current_tok = peek();
@@ -347,9 +394,15 @@ public final class Parser {
   }
 
   private Token peek() {
+    while (match(SPACE) || match(TAB)) {
+      advance();
+    }
     return peek(0);
   }
 
+  private Token peek_raw() {
+    return peek(0);
+  }
   private boolean match(int n, Kind kind) {
     return peek(n).kind() == kind;
   }
