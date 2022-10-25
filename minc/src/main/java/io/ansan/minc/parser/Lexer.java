@@ -28,39 +28,40 @@ public class Lexer {
   }
 
   private Token lexToken() {
-      var start = idx;
-      return switch (peek()) {
-        case '\0' -> addToken(Kind.EOF, start, idx);
-        case '\n', '\r' -> addToken(Kind.EOL, start, idx);
-        case ' ', '\t'  -> null;
-        case '(' -> addToken(Kind.OPEN_PARAN,    start, idx);
-        case ')' -> addToken(Kind.CLOSE_PARAN,   start, idx);
-        case '[' -> addToken(Kind.OPEN_BRACKET,  start, idx);
-        case ']' -> addToken(Kind.CLOSE_BRACKET, start, idx);
-        case '}' -> addToken(Kind.OPEN_BRACE,    start, idx);
-        case '{' -> addToken(Kind.CLOSE_BRACE,   start, idx);
-        case '+' -> lexPlus(start);
-        case '-' -> lexMinus(start);
-        case '/' -> lexDiv(start);
-        case '%' -> addToken(Kind.MODULO,    start, idx);
-        case '*' -> addToken(Kind.MULTIPLY,  start, idx);
-        case '<' -> lexLess(start);
-        case '>' -> lexGreat(start);
-        case '!' -> lexBang(start);
-        case '=' -> lexEq(start);
-        case '|' -> lexPipe(start);
-        case '~' -> addToken(Kind.BIT_NOT, start, idx);
-        case '&' -> lexAnd(start);
-        case '^' -> addToken(Kind.CARROT, start, idx);
-        case ':' -> lexColon(start);
-        case '@' -> addToken(Kind.MACRO, start, idx);
-        case '#' -> addToken(Kind.POUND, start, idx);
-        case '.' -> lexDot(start);
-        case ',' -> addToken(Kind.COMMA, start, idx);
-        case '\'' -> addToken(Kind.SINGLE_QUOTE, start, idx);
-        case '"' -> addToken(Kind.DOUBLE_QUOTE, start, idx);
-        default -> numbersAndIdents(start);
-      };
+    var start = idx;
+    return switch (peek()) {
+      case '\0' -> addToken(Kind.EOF, start, idx);
+      case '\n', '\r' -> addToken(Kind.EOL, start, idx);
+      case ' ' -> addToken(Kind.SPACE, start, idx);
+      case '\t'  -> addToken(Kind.TAB, start, idx);
+      case '(' -> addToken(Kind.OPEN_PARAN,    start, idx);
+      case ')' -> addToken(Kind.CLOSE_PARAN,   start, idx);
+      case '[' -> addToken(Kind.OPEN_BRACKET,  start, idx);
+      case ']' -> addToken(Kind.CLOSE_BRACKET, start, idx);
+      case '}' -> addToken(Kind.OPEN_BRACE,    start, idx);
+      case '{' -> addToken(Kind.CLOSE_BRACE,   start, idx);
+      case '+' -> lexPlus(start);
+      case '-' -> lexMinus(start);
+      case '/' -> lexDiv(start);
+      case '%' -> addToken(Kind.MODULO,    start, idx);
+      case '*' -> addToken(Kind.MULTIPLY,  start, idx);
+      case '<' -> lexLess(start);
+      case '>' -> lexGreat(start);
+      case '!' -> lexBang(start);
+      case '=' -> lexEq(start);
+      case '|' -> lexPipe(start);
+      case '~' -> addToken(Kind.BIT_NOT, start, idx);
+      case '&' -> lexAnd(start);
+      case '^' -> addToken(Kind.CARROT, start, idx);
+      case ':' -> lexColon(start);
+      case '@' -> addToken(Kind.MACRO, start, idx);
+      case '#' -> addToken(Kind.POUND, start, idx);
+      case '.' -> lexDot(start);
+      case ',' -> addToken(Kind.COMMA, start, idx);
+      case '\'' -> addToken(Kind.SINGLE_QUOTE, start, idx);
+      case '"' -> addToken(Kind.DOUBLE_QUOTE, start, idx);
+      default -> numbersAndIdents(start);
+    };
   }
 
   private Token lexPlus(int start) {

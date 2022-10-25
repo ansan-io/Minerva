@@ -17,6 +17,8 @@ public record Token(String lexme, Kind kind, Position pos) {
   public enum Kind {
     EOF("\0", "EOF", 0),
     EOL("\n", "EOL", 0),
+    SPACE("SPACE", 0),
+    TAB("TAB", 0),
     INVALID("invalid", 0),
 
     //Scope
@@ -125,6 +127,7 @@ public record Token(String lexme, Kind kind, Position pos) {
     ELSE("else", 0), // else
     WITH("with", 0), // with
     ENUM("enum", 0), // enum
+    SELF("self", 0), // self
 
     //Type
     PRIMITIVE_BEGIN(null, -1),

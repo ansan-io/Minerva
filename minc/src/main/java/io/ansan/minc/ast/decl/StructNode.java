@@ -13,6 +13,5 @@ public record StructNode(Token ex, Token ident, Token name, Token parent, Token 
     return AstNode.STRUCT_DECLARATION;
   }
 
-  public record StructFieldNode(Token ident, IType type) {
-  }
+  public record StructFieldNode(Token ident, IType type) {}
 }

@@ -4,10 +4,7 @@ import io.ansan.minc.ast.INode;
 import io.ansan.minc.ast.INode.IExprNode;
 import io.ansan.minc.token.Token;
 
-/**
- * ArithmeticNode
- */
-public record ArithmeticNode(INode left, Token op, INode rightk, AstNode ast_kind) implements IExprNode {
+public record ArithmeticNode(INode left, Token op, INode right, AstNode ast_kind) implements IExprNode {
 
   @Override
   public AstNode get_node_type() {

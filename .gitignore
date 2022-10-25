@@ -1,7 +1,9 @@
 build
 /bin
+
 /minc/bin
 /nas/bin
+
 .idea
 .classpath
 .project
